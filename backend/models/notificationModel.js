@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "./userModel.js";
-const notificationSchema = new mongoose.Schema({
+const notificationSchema = new mongoose.Schema(
+{
     from:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
@@ -14,7 +15,7 @@ const notificationSchema = new mongoose.Schema({
     type:{
         type:String,
         required:true,
-        enum:['follow','like']
+        enum:['follow','like','unfollow']
     },
     read:{
         type:Boolean,

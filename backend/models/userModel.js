@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Post from "./postModel.js";
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+{
     username: {
         type: String,
         required: true,

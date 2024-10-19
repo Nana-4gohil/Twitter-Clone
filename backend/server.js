@@ -18,12 +18,12 @@ cloudinary.config({
     api_secret:process.env.CLOUDINARY_API_SECRET
 })
 
-const CORS_OPTIONS = {
-    origin:"http://localhost:3000",
-    credentials:true
-  }
-  app.use(cors(CORS_OPTIONS))
-
+// const CORS_OPTIONS = {
+//     origin:"http://localhost:",
+//     credentials:true
+//   }
+//   app.use(cors(CORS_OPTIONS))
+app.use(cors())
 app.use(express.json({limit:"5mb"}))
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())

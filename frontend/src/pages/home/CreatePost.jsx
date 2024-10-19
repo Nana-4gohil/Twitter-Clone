@@ -1,42 +1,24 @@
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
-import { useContext, useRef, useState } from "react";
+import {  useMemo, useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
-import { AuthContext } from "../../context/authContext";
 import toast from "react-hot-toast";
-import { PostContext } from "../../context/postContext";
+import { useDispatch, useSelector } from "react-redux";
+import { newTweet } from "../../redux/actions/tweetActions";
+
 
 const CreatePost = () => {
+	const {authUser} = useSelector(state=>state?.currentProfile)
 	const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
-	const {authUser:user} = useContext(AuthContext)
-	const {isloading,setIsLoading} = useContext(PostContext)
 	const imgRef = useRef(null);
-	const createPost = async (text,img)=>{
-		try{
-			
-			const res = await fetch("api/v1/posts/create",{
-				method:"POST",
-				headers:{
-					"Content-Type":"application/json"
-				},
-				body:JSON.stringify({text,img})
-			})
-			const data = await res.json()
-			if(!res.ok)throw new Error(data.error)
-			setIsLoading(!isloading)
-			toast.success("Post is Created Succefully")
-		}catch(err){
-	       toast.error(err.message)
-		}finally{
-			setImg(null)
-			setText("")
-		}
-	}
+	const dispatch = useDispatch();
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		createPost(text,img)
-	};
+		dispatch(newTweet({text,img}));
+		setText("")
+		setImg(null)
+	  };
 
 	const handleImgChange = (e) => {
 		const file = e.target.files[0];
@@ -53,7 +35,7 @@ const CreatePost = () => {
 		<div className='flex p-4 items-start gap-4 border-b border-gray-700'>
 			<div className='avatar'>
 				<div className='w-8 rounded-full'>
-					<img src={user.profileImg || "/avatar-placeholder.png"} alt=""/>
+					<img src={authUser?.profileImg || "/avatar-placeholder.png"} alt=""/>
 				</div>
 			</div>
 			<form className='flex flex-col gap-2 w-full' onSubmit={handleSubmit}>

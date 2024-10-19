@@ -1,55 +1,46 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 import { formatMemberSinceDate } from "../../utils/date";
-import { POSTS } from "../../utils/db/dummy";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { AuthContext } from "../../context/authContext";
-import toast from "react-hot-toast";
-import useFollow from "../../hooks/useFollow";
-import useUpdateProfile from "../../hooks/useUpdateProfile";
+import { useDispatch, useSelector } from "react-redux";
+import { getLikeTweet ,getProfileTweets} from "../../redux/actions/tweetActions";
+import { editProfile, followUnfollowUser, getFollowers, getUserProfile } from "../../redux/actions/currentProfileActions";
 const ProfilePage = () => {
+	const dispatch = useDispatch();
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
-	const [following, setfollowing] = useState(null)
 	const [feedType, setFeedType] = useState("posts");
-	const { follow } = useFollow()
-	const { authUser, refrech } = useContext(AuthContext)
-	const [user, setUser] = useState(null)
+	const {refresh, likeTweets, profileTweets}  = useSelector((state) => state?.tweet);
+	const {data:user , authUser,following} =  useSelector((state) => state?.currentProfile);
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
 	const isLoading = false;
 	const { username } = useParams()
-	const memberSinceDate = formatMemberSinceDate(user?.createdAt);
-	const getProfile = async () => {
-		try {
-			const res = await fetch(`/api/v1/user/profile/${username}`)
-			const data = await res.json()
-			if (!res.ok) throw new Error(data.error)
-			setUser(data?.user)
-		} catch (err) {
-			toast.error(err.message)
-		}
-	}
-	const getFollowers = async (id) => {
-		try {
-			const res = await fetch(`/api/v1/user/getfollowing/${id}`)
-			const data = await res.json()
-			if (!res.ok) throw new Error(data.error)
-			setfollowing(data)
-		} catch (err) {
-			toast.error(err.message)
-		}
+	const memberSinceDate = formatMemberSinceDate(user?.createdAt)
+	const handlefollow = (userid)=>{
+        dispatch(followUnfollowUser(userid))
 	}
 	useEffect(() => {
-		getProfile()
-	}, [username, refrech])
-	
+		if(username){
+			dispatch(getUserProfile(username))
+		}
+	}, [username,dispatch,authUser])
+	useEffect(()=>{
+		if(user){
+			dispatch(getProfileTweets(user?.username))
+			dispatch(getLikeTweet(user?._id))
+			dispatch(getFollowers(user?._id))
+		}
+	},[user,refresh,dispatch])
+     
+
+
 	let isMyProfile = authUser?._id === user?._id;
 	const amIfollowing = authUser?.following?.includes(user?._id)
 	const handleImgChange = (e, state) => {
@@ -63,8 +54,6 @@ const ProfilePage = () => {
 			reader.readAsDataURL(file);
 		}
 	};
-	const { updateProfile } = useUpdateProfile()
-
 	return (
 		<>
 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
@@ -80,7 +69,7 @@ const ProfilePage = () => {
 								</Link>
 								<div className='flex flex-col'>
 									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
+									<span className='text-sm text-slate-500'>{profileTweets?.length} posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
@@ -131,7 +120,10 @@ const ProfilePage = () => {
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => follow(user?._id)}
+										onClick={(e) => {
+											e.preventDefault()
+											handlefollow(user?._id)
+										}}
 									>
 										{amIfollowing ? "UnFollow" : "Follow"}
 									</button>
@@ -141,7 +133,7 @@ const ProfilePage = () => {
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
 										onClick={(e) => {
 											e.preventDefault()
-											updateProfile({ coverImg, profileImg })
+											dispatch(editProfile({coverImg,profileImg}))
 											setCoverImg(null)
 											setProfileImg(null)
 										}}
@@ -181,24 +173,23 @@ const ProfilePage = () => {
 								</div>
 								<div className='flex gap-2'>
 									<div className='flex gap-1 items-center'>
-						
+
 										<div
 											className='flex gap-1 items-center cursor-pointer group'
-											onClick={() =>{
-												 document.getElementById("comments_modal").showModal()
-												 getFollowers(user?._id)
-							
-												}}
+											onClick={() => {
+												document.getElementById("comments_modal").showModal()
+										        
+											}}
 										>
 
-											<span className='font-bold text-xs'>{user?.following.length}</span>
+											<span className='font-bold text-xs'>{user?.following?.length}</span>
 											<span className='text-slate-500 text-xs'>Following</span>
 										</div>
 										<dialog id={`comments_modal`} className='modal border-none outline-none'>
 											<div className='modal-box rounded border border-gray-600'>
 												<h3 className='font-bold text-lg mb-4'>following</h3>
 												<div className='flex flex-col gap-3 max-h-60 overflow-auto'>
-													{user?.following.length === 0 && (
+													{user?.following?.length === 0 && (
 														<p className='text-sm text-slate-500'>
 															No following  yet 🤔 Be the first one 😉
 														</p>
@@ -206,7 +197,7 @@ const ProfilePage = () => {
 
 													{following?.map((user) => (
 														<Link to={`/${user?.username}`}>
-															<div key={user._id} className='flex gap-2 items-start'>
+															<div key={user?._id} className='flex gap-2 items-start'>
 																<div className='avatar'>
 																	<div className='w-8 rounded-full'>
 																		<img
@@ -217,9 +208,9 @@ const ProfilePage = () => {
 																</div>
 																<div className='flex flex-col'>
 																	<div className='flex items-center gap-1'>
-																		<span className='font-bold'>{user.fullName}</span>
+																		<span className='font-bold'>{user?.fullName}</span>
 																		<span className='text-gray-700 text-sm'>
-																			@{user.username}
+																			@{user?.username}
 																		</span>
 																	</div>
 																</div>
@@ -235,7 +226,7 @@ const ProfilePage = () => {
 										</dialog>
 									</div>
 									<div className='flex gap-1 items-center'>
-										<span className='font-bold text-xs'>{user?.followers.length}</span>
+										<span className='font-bold text-xs'>{user?.followers?.length}</span>
 										<span className='text-slate-500 text-xs'>Followers</span>
 									</div>
 								</div>
@@ -256,14 +247,15 @@ const ProfilePage = () => {
 								>
 									Likes
 									{feedType === "likes" && (
-										<div className='absolute bottom-0 w-10  h-1 rounded-full bg-primary' />
+										
+											<div className='absolute bottom-0 w-10  h-1 rounded-full bg-primary' />	
 									)}
 								</div>
 							</div>
 						</>
 					)}
-
-					<Posts feedType={feedType} username={username} userId={user?._id} />
+                    
+					<Posts tweets={feedType === "likes" ? likeTweets : profileTweets}/>
 				</div>
 			</div>
 		</>

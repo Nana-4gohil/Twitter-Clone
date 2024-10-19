@@ -12,7 +12,7 @@ class userController
             if(!user){
                 return res.status(404).json({error:"User not found"})
             }
-            return res.status(200).json({user})
+            return res.status(200).json(user)
 
         }catch(err){
             console.log("error in getUserProfile" , err.message)
@@ -36,6 +36,12 @@ class userController
             if(isFollowing){
                 await loggedUser.updateOne({$pull:{following:id}})
                 await followingUser.updateOne({$pull:{followers:loggedUserId}})
+                const newNotification = new Notification({
+                    type:'unfollow',
+                    from:loggedUserId,
+                    to:id
+                })
+                await newNotification.save()
                 return res.status(200).json({
                     message:`${loggedUser.username} unfollow ${followingUser.username}`
                 })
@@ -67,7 +73,7 @@ class userController
                 path:'following',
                 select:['profileImg','username','fullName']
             })
-            res.json(followingUser.following)
+            res.status(200).json(followingUser.following)
            
         }catch(err){
             console.log("error in getfollowingUser" , err.message)
@@ -94,7 +100,7 @@ class userController
            const filteredUsers = users.filter(user=>!userFollowedByMe.following.includes(user._id))
            const suggestedUsers = filteredUsers.slice(0,4)
            suggestedUsers.forEach(user=>user.password=null)
-           return res.status(200).json({suggestedUsers})
+           return res.status(200).json(suggestedUsers)
         }catch(err){
             console.log("error in suggestedUser" , err.message)
             res.status(500).json({error:err.message})

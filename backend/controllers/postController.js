@@ -8,6 +8,7 @@ class postController {
         try {
             const { text } = req.body
             let { img } = req.body
+           
             const userId = req.user?._id.toString()
             const user = await User.findById(userId)
             if (!user) {
@@ -26,7 +27,7 @@ class postController {
                 img,
             })
             await newPost.save()
-            return res.status(201).json(newPost)
+            return res.status(200).json(newPost)
 
         } catch (err) {
             res.status(500).json({ error: err.message })
@@ -43,10 +44,8 @@ class postController {
             if (isLike) {
                 await post.updateOne({ $pull: { likes: userId } })
                 await User.updateOne({ _id: userId }, { $pull: { likedPosts: id } })
-                // const updatedLikes = post.likes.filter((id)=>id.toString() !== userId.toString())
-                // console.log(updatedLikes)
-                return res.status(201).json({
-                    value:1
+                return res.status(200).json({
+                   message:"dislike"
                 })
                
             } else {
@@ -58,10 +57,9 @@ class postController {
                     type: "like"
                 })
                 await notification.save()
-                // const updatedLikes = post.likes;
-                // console.log()
-                return res.status(201).json({
-                    value : 2
+            
+                return res.status(200).json({
+                     message:"like"
                 })
             }
 
@@ -144,7 +142,7 @@ class postController {
             if (!user) {
                 return res.status(404).json({ error: 'User not found' })
             }
-            const posts = await Post.find({ _id: { $in: user?.likedPosts } }).populate({
+            const posts = await Post.find({ _id: { $in:user?.likedPosts } }).populate({
                 path: 'user',
                 select: '-password',
             }).populate({

@@ -1,35 +1,20 @@
 import XSvg from "../svgs/X";
-
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
-import toast from "react-hot-toast";
-import { useContext } from "react";
-import { AuthContext } from "../../context/authContext";
+import { useDispatch, useSelector } from "react-redux";
+import { signOut } from "../../redux/actions/currentProfileActions";
 
 const Sidebar = () => {
-	const {authUser:user,setAuthUser} = useContext(AuthContext)
-	const Navigete = useNavigate()
+	const {authUser:user} = useSelector(state=>state?.currentProfile)
+	const dispatch = useDispatch()
+	const navigate = useNavigate()
 	const logoutHandle = async (e)=>{
 		e.preventDefault()
-		try{
-			const res = await fetch("api/v1/auth/logout",
-				{
-					method:"GET",
-				},
-			)
-			const data = await res.json()
-		    if(!res.ok) throw new Error(data.error)
-			setAuthUser(null)
-		    Navigete("/login")
-			toast.success(data.message)
-		}catch(err){
-			toast.error(err.message)
-		}
+	    dispatch(signOut({navigate}))
 	}
-
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
 			<div className='sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full'>

@@ -1,46 +1,18 @@
 import { Link } from "react-router-dom";
-// import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteNotifications } from "../../redux/actions/currentProfileActions";
 
 const NotificationPage = () => {
-	const [isLoading , setIsLoading] = useState(false)
-	const [notifications,setNotifications] = useState(null)
-	const getNotifications = async () => {
-		try {
-			const res = await fetch("/api/v1/notifications");
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.error || "Something went wrong");
-			setNotifications(data)
-		} catch (error) {
-			throw new Error(error);
-		}
+	const {notifications} = useSelector(state=>state?.currentProfile)
+	const dispatch = useDispatch()
+	const deleteNotification = (e)=>{
+		
+		dispatch(deleteNotifications())
 	}
-	const deleteNotification = async ()=>{
-		try {
-			const res = await fetch("/api/v1/notifications", {
-				method: "DELETE",
-			});
-			const data = await res.json();
-
-			if (!res.ok) throw new Error(data.error || "Something went wrong");
-			toast.success("Notifications deleted successfully");
-			setIsLoading(!isLoading)
-		} catch (error) {
-			throw new Error(error);
-		}
-	}
-	useEffect(()=>{
-		getNotifications()
-	},[isLoading])
-
-	const deleteNotifications = () => {
-		deleteNotification()
-	};
 
 	return (
 		<>
@@ -56,16 +28,11 @@ const NotificationPage = () => {
 							className='dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52'
 						>
 							<li>
-								<a   onClick={deleteNotifications}>Delete all notifications</a>
+								<button  onClick={()=>deleteNotification()}>Delete all notifications</button>
 							</li>
 						</ul>
 					</div>
 				</div>
-				{/* {!isLoading && (
-					<div className='flex justify-center h-full items-center'>
-						<LoadingSpinner size='lg' />
-					</div>
-				)} */}
 				{notifications?.length === 0 && <div className='text-center p-4 font-bold'>No notifications 🤔</div>}
 				{notifications?.map((notification) => (
 					<div className='border-b border-gray-700' key={notification._id}>

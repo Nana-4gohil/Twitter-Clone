@@ -2,14 +2,14 @@ import { useState } from "react";
 
 import Posts from "../../components/common/Posts";
 import CreatePost from "./CreatePost";
-
+import { useSelector } from "react-redux";
 const HomePage = () => {
 	const [feedType, setFeedType] = useState("forYou");
-
+	const tweetState = useSelector((state) => state?.tweet);
+	const {allTweets, followingTweets} = tweetState;
 	return (
 		<>
 			<div className='flex-[4_4_0] mr-auto border-r border-gray-700 min-h-screen'>
-				{/* Header */}
 				<div className='flex w-full border-b border-gray-700'>
 					<div
 						className={
@@ -32,12 +32,8 @@ const HomePage = () => {
 						)}
 					</div>
 				</div>
-
-				{/*  CREATE POST INPUT */}
 				<CreatePost />
-
-				{/* POSTS */}
-				<Posts feedType={feedType} />
+				<Posts tweets={feedType === "following"? followingTweets : allTweets } />
 			</div>
 		</>
 	);

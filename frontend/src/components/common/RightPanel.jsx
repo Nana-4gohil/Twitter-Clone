@@ -1,47 +1,25 @@
 import { Link } from "react-router-dom";
-import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
-// import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy";
-// import { useContext, useEffect, useState } from "react";
-// import { AuthContext } from "../../context/authContext";
-import useFollow from "../../hooks/useFollow";
-import { useQuery } from "@tanstack/react-query";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { followUnfollowUser, suggestedProfile } from "../../redux/actions/currentProfileActions";
 
 const RightPanel = () => {
-	const { data: suggestedUsers, isLoading } = useQuery({
-		queryKey: ["suggestedUsers"],
-		queryFn: async () => {
-			try {
-				const res = await fetch("api/v1/user/suggested");
-				const data = await res.json();
-				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong!");
-				}
-				return data.suggestedUsers;
-			} catch (error) {
-				throw new Error(error.message);
-			}
-		},
-	});
-
-	const {follow} = useFollow();
-
+	const { suggestedUsers,refresh} = useSelector(state => state?.currentProfile)
+	const dispatch = useDispatch()
+	useEffect(() => {
+		dispatch(suggestedProfile())
+	}, [refresh])
+	const handlefollow = (userid) => {
+		dispatch(followUnfollowUser(userid))
+	}
 	if (suggestedUsers?.length === 0) return <div className='md:w-64 w-0'></div>;
-
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
 			<div className='bg-[#16181C] p-4 rounded-md sticky top-2'>
 				<p className='font-bold'>Who to follow</p>
 				<div className='flex flex-col gap-4'>
 					{/* item */}
-					{isLoading && (
-						<>
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-						</>
-					)}
-					{!isLoading &&
+					{
 						suggestedUsers?.map((user) => (
 							<Link
 								to={`/${user.username}`}
@@ -51,7 +29,7 @@ const RightPanel = () => {
 								<div className='flex gap-2 items-center'>
 									<div className='avatar'>
 										<div className='w-8 rounded-full'>
-											<img src={user.profileImg || "/avatar-placeholder.png"} alt=""/>
+											<img src={user.profileImg || "/avatar-placeholder.png"} alt="" />
 										</div>
 									</div>
 									<div className='flex flex-col'>
@@ -64,10 +42,10 @@ const RightPanel = () => {
 								<div>
 									<button
 										className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
-										onClick={(e) =>{
-										e.preventDefault()
-										follow(user?._id)
-										} }
+										onClick={(e) => {
+											e.preventDefault()
+											handlefollow(user?._id)
+										}}
 									>
 										Follow
 									</button>

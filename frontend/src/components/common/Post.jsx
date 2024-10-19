@@ -3,89 +3,35 @@ import { BiRepost } from "react-icons/bi";
 import { FaRegHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
-import { useContext, useState} from "react";
+import { useState} from "react";
 import { Link } from "react-router-dom";
-import toast from "react-hot-toast";
-import { AuthContext } from "../../context/authContext";
-// import { QueryClient, useMutation} from "@tanstack/react-query";
-// import LoadingSpinner from '../common/LoadingSpinner'
 
 import { formatPostDate } from "../../utils/date";
-import { PostContext } from "../../context/postContext";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteTweet, likeTweet, newReply } from "../../redux/actions/tweetActions";
 const Post = ({ post }) => {
-	const [comment, setComment] = useState("")
-	const {authUser:user} = useContext(AuthContext)
-	const {setIsLoading, isloading} = useContext(PostContext)
-	// const { user } = authUser
+	const {isLiked}  = useSelector((state) => state?.tweet);
+	const [text, setComment] = useState("")
+	// const {authUser:user} = useContext(AuthContext)
+	const {authUser:user} =  useSelector((state) => state?.currentProfile);
 	const postOwner = post.user;
 	const formattedDate = formatPostDate(post.createdAt);
-	const isCommenting = false;
-	const [isLiked,setIsLiked] = useState(false)
-	const deletPost = async () => {
-		try {
-
-			const res = await fetch(`api/v1/posts/${post._id}`, {
-				method: "DELETE",
-			})
-			const data = await res.json()
-			if (!res.ok) return new Error(data.error)
-			setIsLoading(!isloading)
-			toast.success(data.message)
-		} catch (err) {
-			toast.error(err)
-		}
-	}
+	const dispatch = useDispatch();
 	const handleDeletePost = (e) => {
 		e.preventDefault()
-		deletPost()
+		dispatch(deleteTweet(post._id))
+		
 	};
-	const likePost = async () => {
-		try {
-			const res = await fetch(`api/v1/posts/like/${post._id}`, {
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				throw new Error(data.error || "Something went wrong");
-			}
-			
-			if(data.value === 2){
-				toast.success("you liked post")
-				setIsLiked(false)
-			}else{
-				toast.success("you disliked post")
-				setIsLiked(true)
-			}
-			setIsLoading(!isloading)
-		} catch (error) {
-			throw new Error(error);
-		}
-	}
-	const commentPost = async ()=>{
-		try{
-			const res = await fetch(`api/v1/posts/comment/${post._id}`,{
-			  method:"POST",
-			  headers:{
-				"Content-type":"application/json"
-			  },
-			  body:JSON.stringify({text:comment})
-			})
-			const data = await res.json()
-			if(!res.ok)throw new Error(data.error)
-			setIsLoading(!isloading)
-		    toast.success("Comment posted successfully")
-			setComment("")
-		}catch(err){
-			toast.error(err.message)
-		}
-	}
 	const handlePostComment = (e) => {
 		e.preventDefault();
-		commentPost()
+		var pid = post._id;
+		if(text)
+			dispatch(newReply({pid , text}))
 	};
-
-	const handleLikePost = async () => {
-		// if (isLiking) return;
-		likePost()
+	const handleLikePost = async (e) => {
+		e.preventDefault();
+		dispatch(likeTweet(post._id))
+		
 	};
 
 	return (
@@ -128,12 +74,13 @@ const Post = ({ post }) => {
 								className='flex gap-1 items-center cursor-pointer group'
 								onClick={() => document.getElementById("comments_modal" + post._id).showModal()}
 							>
+								
 								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400' />
 								<span className='text-sm text-slate-500 group-hover:text-sky-400'>
 									{post.comments.length}
 								</span>
 							</div>
-							{/* We're using Modal Component from DaisyUI */}
+
 							<dialog id={`comments_modal${post._id}`} className='modal border-none outline-none'>
 								<div className='modal-box rounded border border-gray-600'>
 									<h3 className='font-bold text-lg mb-4'>COMMENTS</h3>
@@ -172,16 +119,12 @@ const Post = ({ post }) => {
 										<textarea
 											className='textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800'
 											placeholder='Add a comment...'
-											value={comment}
+											value={text}
 											onChange={(e) => setComment(e.target.value)}
 										/>
-										<button className='btn btn-primary rounded-full btn-sm text-white px-4'>
-											{isCommenting ? (
-												<span className='loading loading-spinner loading-md'></span>
-											) : (
-												"Post"
-											)}
-										</button>
+										<button className='btn btn-primary rounded-full btn-sm text-white px-4'
+										onClick={() => document.getElementById("comments_modal" + post._id).close()}
+										>Post</button>
 									</form>
 								</div>
 								<form method='dialog' className='modal-backdrop'>

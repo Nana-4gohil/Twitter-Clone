@@ -1,54 +1,29 @@
-import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
+import {  useState } from "react";
+import { Link,useNavigate } from "react-router-dom";
 import XSvg from "../../../components/svgs/X";
-
 import { MdOutlineMail } from "react-icons/md";
 import { MdPassword } from "react-icons/md";
-import toast from "react-hot-toast";
+
 import {BeatLoader} from "react-spinners"
-import { AuthContext } from "../../../context/authContext";
+import { useDispatch, useSelector } from "react-redux";
+import { signIn } from "../../../redux/actions/currentProfileActions";
 
 const LoginPage = () => {
+	const {loading,errors}  = useSelector(state => state.currentProfile);
+	const dispatch = useDispatch();
+	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
 		username: "",
 		password: "",
-
 	});
-	const [Isloading, setIsloading] = useState(false)
-	const [isError, setIsError] = useState(false)
-	const {setAuthUser} = useContext(AuthContext)
-	const Navigate = useNavigate()
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		try {
-			setIsloading(true)
-			const res = await fetch("api/v1/auth/login", {
-				method: "POST",
-				headers: {
-					"Content-type": "application/json"
-				},
-				body: JSON.stringify(formData)
-			})
-			const data = await res.json()
-			if (!res.ok) throw new Error(data.error)
-			setAuthUser(data)
-			toast.success("User Login Succefully")
-			Navigate("/")
-		} catch (err) {
-			setAuthUser(null)
-			setIsError(true)
-			toast.error(err.message)
-		}finally{
-			setIsloading(false)
-		}
-
-	};
-
+	    dispatch(signIn({formData,navigate}))
+	  };
+	
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
-
 
 	return (
 		<div className='max-w-screen-xl mx-auto flex h-screen'>
@@ -83,9 +58,9 @@ const LoginPage = () => {
 						/>
 					</label>
 					{
-						Isloading ? <BeatLoader className='btn btn-primary rounded-full' color="white"/>: <button className='btn rounded-full btn-primary text-white'>Login</button>
+						loading ? <BeatLoader className='btn btn-primary rounded-full' color="white"/>: <button className='btn rounded-full btn-primary text-white'>Login</button>
 					}
-					{isError && <p className='text-red-500'></p>}
+					{errors && <p className='text-red-500'>{errors}</p>}
 				</form>
 				<div className='flex flex-col gap-2 mt-4'>
 					<p className='text-white text-lg'>{"Don't"} have an account?</p>
