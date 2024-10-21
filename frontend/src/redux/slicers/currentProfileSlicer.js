@@ -62,9 +62,11 @@ export const currentProfileSlicer = createSlice({
         const { navigate } = action.meta.arg;
         if (status === 200) {
           state.data = data;
+          navigate("/")
           localStorage.setItem('jwtToken', state?.data?.token);
+         
           state.refresh = !state.refresh
-          navigate('/')
+          
         } else {
            toast.error(data?.error)
         }

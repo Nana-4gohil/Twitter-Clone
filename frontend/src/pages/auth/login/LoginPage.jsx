@@ -22,7 +22,7 @@ const LoginPage = () => {
 	  };
 	
 	const handleInputChange = (e) => {
-		setFormData({ ...formData, [e.target.name]: e.target.value });
+		setFormData({ ...formData, [e?.target?.name]: e?.target?.value });
 	};
 
 	return (
@@ -42,7 +42,7 @@ const LoginPage = () => {
 							placeholder='username'
 							name='username'
 							onChange={handleInputChange}
-							value={formData.username}
+							value={formData?.username}
 						/>
 					</label>
 
@@ -54,7 +54,7 @@ const LoginPage = () => {
 							placeholder='Password'
 							name='password'
 							onChange={handleInputChange}
-							value={formData.password}
+							value={formData?.password}
 						/>
 					</label>
 					{

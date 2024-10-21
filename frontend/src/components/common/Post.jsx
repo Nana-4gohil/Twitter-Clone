@@ -12,25 +12,26 @@ import { deleteTweet, likeTweet, newReply } from "../../redux/actions/tweetActio
 const Post = ({ post }) => {
 	const {isLiked}  = useSelector((state) => state?.tweet);
 	const [text, setComment] = useState("")
-	// const {authUser:user} = useContext(AuthContext)
 	const {authUser:user} =  useSelector((state) => state?.currentProfile);
 	const postOwner = post.user;
-	const formattedDate = formatPostDate(post.createdAt);
+	const formattedDate = formatPostDate(post?.createdAt) 
 	const dispatch = useDispatch();
 	const handleDeletePost = (e) => {
 		e.preventDefault()
-		dispatch(deleteTweet(post._id))
+		dispatch(deleteTweet(post?._id))
 		
 	};
 	const handlePostComment = (e) => {
 		e.preventDefault();
-		var pid = post._id;
+		var pid = post?._id;
 		if(text)
 			dispatch(newReply({pid , text}))
+
+		setComment("")
 	};
 	const handleLikePost = async (e) => {
 		e.preventDefault();
-		dispatch(likeTweet(post._id))
+		dispatch(likeTweet(post?._id))
 		
 	};
 
@@ -38,17 +39,17 @@ const Post = ({ post }) => {
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
 				<div className='avatar'>
-					<Link to={`/${postOwner.username}`} className='w-8 rounded-full overflow-hidden'>
-						<img src={postOwner.profileImg || "/avatar-placeholder.png"} alt="" />
+					<Link to={`/${postOwner?.username}`} className='w-8 rounded-full overflow-hidden'>
+						<img src={postOwner?.profileImg || "/avatar-placeholder.png"} alt="" />
 					</Link>
 				</div>
 				<div className='flex flex-col flex-1'>
 					<div className='flex gap-2 items-center'>
-						<Link to={`/${postOwner.username}`} className='font-bold'>
-							{postOwner.fullName}
+						<Link to={`/${postOwner?.username}`} className='font-bold'>
+							{postOwner?.fullName}
 						</Link>
 						<span className='text-gray-700 flex gap-1 text-sm'>
-							<Link to={`/${postOwner.username}`}>@{postOwner.username}</Link>
+							<Link to={`/${postOwner?.username}`}>@{postOwner.username}</Link>
 							<span>·</span>
 							<span>{formattedDate}</span>
 						</span>
@@ -59,10 +60,10 @@ const Post = ({ post }) => {
 						)}
 					</div>
 					<div className='flex flex-col gap-3 overflow-hidden'>
-						<span>{post.text}</span>
+						<span>{post?.text}</span>
 						{post.img && (
 							<img
-								src={post.img}
+								src={post?.img}
 								className='h-80 object-contain rounded-lg border border-gray-700'
 								alt=''
 							/>
@@ -77,21 +78,21 @@ const Post = ({ post }) => {
 								
 								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400' />
 								<span className='text-sm text-slate-500 group-hover:text-sky-400'>
-									{post.comments.length}
+									{post?.comments?.length}
 								</span>
 							</div>
 
-							<dialog id={`comments_modal${post._id}`} className='modal border-none outline-none'>
+							<dialog id={`comments_modal${post?._id}`} className='modal border-none outline-none'>
 								<div className='modal-box rounded border border-gray-600'>
 									<h3 className='font-bold text-lg mb-4'>COMMENTS</h3>
 									<div className='flex flex-col gap-3 max-h-60 overflow-auto'>
-										{post.comments.length === 0 && (
+										{post?.comments?.length === 0 && (
 											<p className='text-sm text-slate-500'>
 												No comments yet 🤔 Be the first one 😉
 											</p>
 										)}
-										{post.comments.map((comment) => (
-											<div key={comment._id} className='flex gap-2 items-start'>
+										{post?.comments?.map((comment) => (
+											<div key={comment?._id} className='flex gap-2 items-start'>
 												<div className='avatar'>
 													<div className='w-8 rounded-full'>
 														<img
@@ -104,10 +105,10 @@ const Post = ({ post }) => {
 													<div className='flex items-center gap-1'>
 														<span className='font-bold'>{comment.user.fullName}</span>
 														<span className='text-gray-700 text-sm'>
-															@{comment.user.username}
+															@{comment?.user?.username}
 														</span>
 													</div>
-													<div className='text-sm'>{comment.text}</div>
+													<div className='text-sm'>{comment?.text}</div>
 												</div>
 											</div>
 										))}
@@ -148,7 +149,7 @@ const Post = ({ post }) => {
 									className={`text-sm  group-hover:text-pink-500 ${isLiked ? "text-pink-500" : "text-slate-500"
 										}`}
 								>
-									{post.likes.length}
+									{post?.likes?.length}
 								</span>
 							</div>
 						</div>
